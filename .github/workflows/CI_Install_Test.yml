@@ -3,7 +3,7 @@ name: CI - Feature Branch
 on:
   push:
     branches:
-      - "feature-1"
+      - "feature-*"
 
 jobs:
   test-and-pr:
@@ -19,7 +19,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U test_user"
+          --health-cmd="pg_isready -U test_user -d test_db"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -38,13 +38,16 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.11"
+          cache: "pip"
 
       # 3️⃣ Setup Node (Next.js)
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
 
       # 4️⃣ Install backend dependencies
       - name: Install Django dependencies
@@ -53,12 +56,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 5️⃣ Run Django tests
+      # 5️⃣ Run Django migrations & tests
       - name: Run Django tests
         run: |
           cd backend
-          python manage.py migrate
-          python manage.py test
+          python manage.py migrate --noinput
+          python manage.py test --verbosity 2
 
       # 6️⃣ Install frontend dependencies
       - name: Install Next.js dependencies
@@ -79,7 +82,7 @@ jobs:
       - name: Build frontend Docker image
         run: docker build -t nextjs-test ./frontend
 
-      # 9️⃣ Create PR to dev (only if everything passed)
+      # 9️⃣ Create PR to dev (skip if PR already exists)
       - name: Create Pull Request to dev
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -88,4 +91,5 @@ jobs:
             --base dev \
             --head "${{ github.ref_name }}" \
             --title "Merge ${{ github.ref_name }} into dev" \
-            --body "✅ CI passed (Django + Next.js). Ready for review."
+            --body "✅ CI passed (Django + Next.js). Ready for review." \
+          || echo "PR already exists. Skipping."
