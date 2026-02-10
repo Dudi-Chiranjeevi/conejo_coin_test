@@ -1,0 +1,522 @@
+"use client";
+
+import type React from "react";
+
+import { useState, useEffect } from "react";
+import { X, Upload, UserIcon, Shield, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { User } from "../types/user-management";
+import { mockUserRoles, mockPermissionModules } from "../types/user-management";
+
+interface AddEditUserModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  user?: User | null;
+  onSave: (userData: Partial<User>) => void;
+}
+
+export function AddEditUserModal({
+  isOpen,
+  onClose,
+  user,
+  onSave,
+}: AddEditUserModalProps) {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    department: "",
+    roleId: "",
+    status: "active" as const,
+    avatar: "",
+    bio: "",
+    twoFactorEnabled: false,
+    emailNotifications: true,
+    permissions: {} as Record<string, Record<string, boolean>>,
+  });
+
+  const [activeTab, setActiveTab] = useState("basic");
+  const [avatarPreview, setAvatarPreview] = useState<string>("");
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone || "",
+        department: user.department || "",
+        roleId: user.role.id,
+        status: user.status,
+        avatar: user.avatar || "",
+        bio: "",
+        twoFactorEnabled: user.twoFactorEnabled,
+        emailNotifications: true,
+        permissions: {},
+      });
+      setAvatarPreview(user.avatar || "");
+    } else {
+      // Reset form for new user
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        department: "",
+        roleId: "",
+        status: "active",
+        avatar: "",
+        bio: "",
+        twoFactorEnabled: false,
+        emailNotifications: true,
+        permissions: {},
+      });
+      setAvatarPreview("");
+    }
+  }, [user, isOpen]);
+
+  const handleSave = () => {
+    const selectedRole = mockUserRoles.find(
+      (role) => role.id === formData.roleId
+    );
+
+    const userData: Partial<User> = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phone: formData.phone,
+      department: formData.department,
+      role: selectedRole!,
+      status: formData.status,
+      avatar: formData.avatar,
+      twoFactorEnabled: formData.twoFactorEnabled,
+    };
+
+    onSave(userData);
+    onClose();
+  };
+
+  const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setAvatarPreview(result);
+        setFormData((prev) => ({ ...prev, avatar: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePermissionChange = (
+    moduleId: string,
+    permission: string,
+    granted: boolean
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        [moduleId]: {
+          ...prev.permissions[moduleId],
+          [permission]: granted,
+        },
+      },
+    }));
+  };
+
+  const selectedRole = mockUserRoles.find(
+    (role) => role.id === formData.roleId
+  );
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <UserIcon className="h-5 w-5" />
+            {user ? "Edit User" : "Add New User"}
+          </DialogTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute right-4 top-4"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </DialogHeader>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="basic">Basic Info</TabsTrigger>
+            <TabsTrigger value="permissions">Permissions</TabsTrigger>
+            <TabsTrigger value="preferences">Preferences</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="basic" className="space-y-6 mt-6">
+            {/* Profile Picture */}
+            <div className="flex items-center space-x-6">
+              <div className="relative">
+                <Avatar className="h-24 w-24">
+                  <AvatarImage
+                    src={avatarPreview || "/placeholder.svg"}
+                    alt="Profile"
+                  />
+                  <AvatarFallback className="text-lg">
+                    {formData.firstName.charAt(0)}
+                    {formData.lastName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700">
+                  <Upload className="h-3 w-3" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium">Profile Picture</h3>
+                <p className="text-sm text-gray-600">
+                  Upload a profile picture for this user
+                </p>
+              </div>
+            </div>
+
+            {/* Basic Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="firstName">First Name *</Label>
+                <Input
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      firstName: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter first name"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="lastName">Last Name *</Label>
+                <Input
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      lastName: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter last name"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="email">Email Address *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, email: e.target.value }))
+                  }
+                  placeholder="Enter email address"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, phone: e.target.value }))
+                  }
+                  placeholder="Enter phone number"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="department">Department</Label>
+                <Select
+                  value={formData.department}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, department: value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Management">Management</SelectItem>
+                    <SelectItem value="Operations">Operations</SelectItem>
+                    <SelectItem value="Inventory">Inventory</SelectItem>
+                    <SelectItem value="Sales">Sales</SelectItem>
+                    <SelectItem value="Support">Support</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="role">Role *</Label>
+                <Select
+                  value={formData.roleId}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, roleId: value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockUserRoles.map((role) => (
+                      <SelectItem key={role.id} value={role.id}>
+                        <div className="flex items-center space-x-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: role.color }}
+                          />
+                          <span>{role.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedRole && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    {selectedRole.description}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Bio */}
+            <div>
+              <Label htmlFor="bio">Bio / Description</Label>
+              <Textarea
+                id="bio"
+                value={formData.bio}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, bio: e.target.value }))
+                }
+                placeholder="Enter a brief description about this user"
+                rows={3}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="permissions" className="space-y-6 mt-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium">
+                    Role-Based Permissions
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Configure specific permissions for this user
+                  </p>
+                </div>
+                {selectedRole && (
+                  <Badge
+                    style={{
+                      backgroundColor: `${selectedRole.color}20`,
+                      color: selectedRole.color,
+                    }}
+                  >
+                    {selectedRole.name}
+                  </Badge>
+                )}
+              </div>
+
+              {/* Permission Matrix */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Permission Matrix
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {mockPermissionModules.map((module) => (
+                      <div key={module.id} className="space-y-3">
+                        <h4 className="font-medium text-gray-900">
+                          {module.name}
+                        </h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {module.permissions.map((permission) => (
+                            <div
+                              key={permission}
+                              className="flex items-center space-x-2"
+                            >
+                              <Checkbox
+                                id={`${module.id}-${permission}`}
+                                checked={
+                                  formData.permissions[module.id]?.[
+                                    permission
+                                  ] || false
+                                }
+                                onCheckedChange={(checked) =>
+                                  handlePermissionChange(
+                                    module.id,
+                                    permission,
+                                    checked as boolean
+                                  )
+                                }
+                              />
+                              <Label
+                                htmlFor={`${module.id}-${permission}`}
+                                className="text-sm capitalize"
+                              >
+                                {permission}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="preferences" className="space-y-6 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  User Preferences
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Security Settings */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-gray-900">
+                    Security Settings
+                  </h4>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Two-Factor Authentication</Label>
+                      <p className="text-sm text-gray-600">
+                        Require 2FA for this user
+                      </p>
+                    </div>
+                    <Switch
+                      checked={formData.twoFactorEnabled}
+                      onCheckedChange={(checked) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          twoFactorEnabled: checked,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Notification Settings */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-gray-900">
+                    Notification Settings
+                  </h4>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Email Notifications</Label>
+                      <p className="text-sm text-gray-600">
+                        Send email notifications to this user
+                      </p>
+                    </div>
+                    <Switch
+                      checked={formData.emailNotifications}
+                      onCheckedChange={(checked) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          emailNotifications: checked,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Account Status */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-gray-900">Account Status</h4>
+
+                  <div>
+                    <Label>Status</Label>
+                    <Select
+                      value={formData.status}
+                      onValueChange={(value: "active" | "inactive") =>
+                        setFormData((prev) => ({ ...prev, status: value }))
+                      }
+                    >
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Footer Actions */}
+        <div className="flex justify-end space-x-3 pt-6 border-t">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={
+              !formData.firstName ||
+              !formData.lastName ||
+              !formData.email ||
+              !formData.roleId
+            }
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {user ? "Update User" : "Create User"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

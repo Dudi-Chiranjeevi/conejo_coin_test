@@ -1,0 +1,264 @@
+✅ Auth Flow Summary for Frontend (Cookies + Firebase + DRF)
+We're using Firebase Auth on the frontend, but relying on Django to manage session-like behavior via secure HTTP-only cookies. Here’s how each step works:
+
+🔐 1. Login (POST /api/v1/auth/login/)
+Request Body:
+
+json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+On Success:
+Backend authenticates with Firebase, then authenticates Django user
+
+Returns:
+json
+{
+  "success": true,
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "firstName": "...",
+    "lastName": "..."
+  }
+}
+And sets these cookies: firebase_token (Firebase ID token, short-lived), firebase_refresh (Firebase refresh token, long-lived)
+Cookies are:HttpOnly, Secure, and SameSite=Lax
+Not visible in JavaScript, but sent automatically with same-origin requests
+
+🟢 2. Status Check (GET /api/v1/auth/status/)
+Requires no body
+Cookie firebase_token must be present (sent automatically by browser)
+Returns:
+json
+{
+  "authenticated": true,
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "firstName": "...",
+    "lastName": "..."
+  }
+}
+If cookie is missing or invalid:
+
+json
+{
+  "authenticated": false
+}
+🔁 3. Refresh Token (POST /api/v1/auth/refresh/)
+Reads firebase_refresh cookie, contacts Firebase to refresh ID token
+
+Sets new cookies: New firebase_token, Optionally new firebase_refresh
+Returns:
+json
+{
+  "success": true
+}
+⚠️ No need to read tokens from body — the browser will handle it via cookies
+
+🚪 4. Logout (POST /api/v1/auth/logout/)
+Deletes both firebase_token and firebase_refresh cookies
+
+Returns:
+json
+{
+  "success": true
+}
+After logout, /auth/status/ will return:
+json
+{
+  "authenticated": false
+}
+
+⚠️ No need to read tokens from body — the browser will handle it via cookies
+
+🚪 4. Logout (POST /api/v1/auth/logout/)
+Deletes both firebase_token and firebase_refresh cookies
+
+Returns:
+json
+{
+  "success": true
+}
+
+After logout, /auth/status/ will return:
+
+json
+{
+  "authenticated": false
+}
+
+🧭 What Frontend Needs to Handle
+Task	                       Frontend Behavior
+Logging in	            Send email/password to /auth/login/
+Persisting session	    Let browser manage cookies (no need to store tokens)
+Checking login	        Call /auth/status/ and handle authenticated vs not
+Refreshing token	    Optionally call /auth/refresh/ periodically (e.g. on 401 or every 30 mins)
+Logging out	            Call /auth/logout/ and clear any local user data
+
+🛑 CORS & Cookie Considerations
+Make sure:
+Frontend and backend share same top-level domain (e.g. localhost and localhost)
+
+Frontend sends credentials:
+
+fetch("/api/v1/auth/status/", {
+  method: "GET",
+  credentials: "include"  // <-- required!
+});
+Backend allows CORS with credentials (set CORS_ALLOW_CREDENTIALS = True in Django)
+
+Essentials-
+1.On login, start a background interval to call /auth/refresh/ every ~55 minutes
+2.On 401 responses, try to refresh once, then retry the failed request
+3.Use credentials: "include" in all API calls to send cookies
+4.Don't try to manage firebase_token manually in frontend JS — let cookies handle it
+
+postgres-
+1.gcloud sql instances create coenjo-postgres \
+    --database-version=POSTGRES_15 \
+    --tier=db-f1-micro \
+    --region=us-central1
+Creating Cloud SQL instance for POSTGRES_15...done.                                                                                                         
+Created [https://sqladmin.googleapis.com/sql/v1beta4/projects/swift-implement-405417/instances/coenjo-postgres].
+NAME: coenjo-postgres
+DATABASE_VERSION: POSTGRES_15
+LOCATION: us-central1-c
+TIER: db-f1-micro
+PRIMARY_ADDRESS: 35.223.100.158
+PRIVATE_ADDRESS: -
+STATUS: RUNNABLE
+2. gcloud sql databases create inventory --instance=coenjo-postgres
+Creating Cloud SQL database...done.                                                                                                                         
+Created database [inventory].
+instance: coenjo-postgres
+name: inventory
+project: swift-implement-405417
+3.gcloud sql users create admin --instance=coenjo-postgres --password=H8nJOy8AeDoLOgM
+4. describe instance: gcloud sql instances describe coenjo-postgres
+gcloud sql instances describe coenjo-postgres
+backendType: SECOND_GEN
+connectionName: swift-implement-405417:us-central1:coenjo-postgres
+createTime: '2025-08-19T09:22:10.894Z'
+databaseInstalledVersion: POSTGRES_15_13
+databaseVersion: POSTGRES_15
+etag: 40ed8828b238d6fccda12b0be339fc1e83aeb243b8928925145c52e46afd77ee
+gceZone: us-central1-c
+geminiConfig:
+  activeQueryEnabled: false
+  entitled: false
+  googleVacuumMgmtEnabled: false
+  indexAdvisorEnabled: false
+  oomSessionCancelEnabled: true
+includeReplicasForMajorVersionUpgrade: false
+instanceType: CLOUD_SQL_INSTANCE
+ipAddresses:
+- ipAddress: 35.223.100.158
+  type: PRIMARY
+- ipAddress: 35.232.27.49
+  type: OUTGOING
+kind: sql#instance
+maintenanceVersion: POSTGRES_15_13.R20250302.00_31
+name: coenjo-postgres
+project: swift-implement-405417
+region: us-central1
+satisfiesPzi: true
+selfLink: https://sqladmin.googleapis.com/sql/v1beta4/projects/swift-implement-405417/instances/coenjo-postgres
+serverCaCert:
+  cert: |-
+    -----BEGIN CERTIFICATE-----
+    MIIDfzCCAmegAwIBAgIBADANBgkqhkiG9w0BAQsFADB3MS0wKwYDVQQuEyRmZTFi
+    MTZhNi1mNWQzLTRjYjQtYjIxYi0xODUzMGRkZWZlNGQxIzAhBgNVBAMTGkdvb2ds
+    ZSBDbG91ZCBTUUwgU2VydmVyIENBMRQwEgYDVQQKEwtHb29nbGUsIEluYzELMAkG
+    A1UEBhMCVVMwHhcNMjUwODE5MDkyMTU4WhcNMzUwODE3MDkyMjU4WjB3MS0wKwYD
+    VQQuEyRmZTFiMTZhNi1mNWQzLTRjYjQtYjIxYi0xODUzMGRkZWZlNGQxIzAhBgNV
+    BAMTGkdvb2dsZSBDbG91ZCBTUUwgU2VydmVyIENBMRQwEgYDVQQKEwtHb29nbGUs
+    IEluYzELMAkGA1UEBhMCVVMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB
+    AQCoyT9xc3LAkPiOJk50ymSKfPb+wgF2LPdWJJixGvq7fFTjZgxtn7eGU0iq3Dg9
+    rIwBABCnRpIfeHrPtBMO2iBUCvbhezfRobNGwVHZMx95VPi+OncbxGhXOkC6YZ6R
+    /F3PjqR4LzkJYbq61dZturODgbp6P2ZZEUI2vRCI7loJUdArTBfLokRRYqDPkuni
+    jkqZQMGoGcaG1sGYs6ZnvqYnLtAyXii9cfIyh8Tzx293KHQQE2Jrkp79JDH5ntEP
+    ZpkqnQ5XW4M8+Ex3aijJUmuAd0Y+XIFvn0m1xZfWSPE30pelcToHOWMBBWjLKs9a
+    MF+mouss5pVJxiVzfwpLlCxbAgMBAAGjFjAUMBIGA1UdEwEB/wQIMAYBAf8CAQAw
+    DQYJKoZIhvcNAQELBQADggEBAJfQfTcvm9JG9cEqNYcW5po3BHUntc2sahLU0YOc
+    IedtBICzGxX3XN4plvs5FSkP1uWpXAPLZFKPH8I7yfe3v5l3/EZVRyywojz+78OD
+    U3plyE7kr0lYPNCWqe4eqNG8WS1u5fEhaK/C2UnfhEvSop2gNnLzFyWAuoMQt91J
+    ZdfA/Er5JMR0ZtXBmB8kqiBfXlPqsjkhZWT7MC1QaR8pIvWQLxzb5TwazVYEjF2e
+    74uO9a2fDxoWpMVH2+2jiO2iB27riCmrYWKRBKt/X21Q4IjHz4u2/7pERTXF0IL4
+    vQF7TOZcWltH5xVg0AFJ5JwLLC4YWl1luZH04EmxDT0D1LI=
+    -----END CERTIFICATE-----
+  certSerialNumber: '0'
+  commonName: C=US,O=Google\, Inc,CN=Google Cloud SQL Server CA,dnQualifier=fe1b16a6-f5d3-4cb4-b21b-18530ddefe4d
+  createTime: '2025-08-19T09:21:58.909Z'
+  expirationTime: '2035-08-17T09:22:58.909Z'
+  instance: coenjo-postgres
+  kind: sql#sslCert
+  sha1Fingerprint: d42e07a1c5c11ef81a5f4d5e7d9f4b7311366593
+serviceAccountEmailAddress: p146447649143-03yd6g@gcp-sa-cloud-sql.iam.gserviceaccount.com
+settings:
+  activationPolicy: ALWAYS
+  availabilityType: ZONAL
+  backupConfiguration:
+    backupRetentionSettings:
+      retainedBackups: 7
+      retentionUnit: COUNT
+    backupTier: STANDARD
+    enabled: false
+    kind: sql#backupConfiguration
+    startTime: 16:00
+    transactionLogRetentionDays: 7
+    transactionalLogStorageState: TRANSACTIONAL_LOG_STORAGE_STATE_UNSPECIFIED
+  connectorEnforcement: NOT_REQUIRED
+  dataDiskSizeGb: '10'
+  dataDiskType: PD_SSD
+  deletionProtectionEnabled: false
+  ipConfiguration:
+    ipv4Enabled: true
+    requireSsl: false
+    serverCaMode: GOOGLE_MANAGED_INTERNAL_CA
+    sslMode: ALLOW_UNENCRYPTED_AND_ENCRYPTED
+  kind: sql#settings
+  locationPreference:
+    kind: sql#locationPreference
+    zone: us-central1-c
+  pricingPlan: PER_USE
+  replicationLagMaxSeconds: 31536000
+  replicationType: SYNCHRONOUS
+  settingsVersion: '1'
+  storageAutoResize: true
+  storageAutoResizeLimit: '0'
+  tier: db-f1-micro
+sqlNetworkArchitecture: NEW_NETWORK_ARCHITECTURE
+state: RUNNABLE
+upgradableDatabaseVersions:
+- displayName: PostgreSQL 16
+  majorVersion: POSTGRES_16
+  name: POSTGRES_16
+- displayName: PostgreSQL 17
+  majorVersion: POSTGRES_17
+  name: POSTGRES_17
+
+backend docker image deployment-
+gcloud run deploy coenjo-backend \
+  --image gcr.io/swift-implement-405417/coenjo-backend-image \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --add-cloudsql-instances swift-implement-405417:us-central1:coenjo-postgres \
+  --set-env-vars "\
+DEBUG=True,\
+ALLOWED_HOSTS=*,\
+DB_NAME=inventory,\
+DB_USER=admin,\
+DB_PASSWORD=H8nJOy8AeDoLOgM,\
+DB_USE_SSL=True,\
+FIREBASE_API_KEY=AIzaSyBcKuSn3VRuTbpleaVLKjv2kQNirk9PAz8,\
+FIREBASE_AUTH_DOMAIN=fir-login-f2d74.firebaseapp.com,\
+FIREBASE_PROJECT_ID=fir-login-f2d74,\
+FIREBASE_STORAGE_BUCKET=fir-login-f2d74.firebasestorage.app,\
+FIREBASE_MESSAGING_SENDER_ID=46429900148,\
+FIREBASE_APP_ID=1:46429900148:web:ed5af3fdbbdad9e8eb7021,\
+SECRET_KEY=g0ykz=-x5gx1p)9k%xp^@#8(3!8a@v8u0&ci2nr#7n3_qzc7%i"

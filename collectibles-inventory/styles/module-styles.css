@@ -1,0 +1,35 @@
+/* 
+ * Shared module styling for consistent look and feel across application modules
+ * This file standardizes custom color references that aren't in the Tailwind config
+ */
+
+@layer utilities {
+  /* Text colors */
+  .text-moss-darker {
+    @apply text-ink;
+  }
+  
+  .text-moss-600 {
+    @apply text-muted-foreground;
+  }
+  
+  /* Background colors */
+  .bg-moss-darker {
+    @apply bg-ink;
+  }
+  
+  /* Border colors */
+  .border-moss-darker {
+    @apply border-ink;
+  }
+  
+  /* Shadow colors */
+  .shadow-moss-darker {
+    @apply shadow-ink;
+  }
+  
+  /* Glass container styling */
+  .glass-container {
+    @apply backdrop-blur-md bg-white/20 border border-softGold/20;
+  }
+}

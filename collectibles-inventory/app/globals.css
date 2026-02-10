@@ -1,0 +1,255 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@theme {
+  /* ---------------------------------------------------- */
+  /* --- Color Tokens (Custom accents, Moss, shadcn/ui) --- */
+  /* ---------------------------------------------------- */
+
+  /* Custom Accents */
+  --color-goldYellow: #f5ed31;
+  --color-vividOrange: #fb923c;
+  --color-skyBlue: #38bdf8;
+  --color-ink: #111827;
+  --color-warmBg: #f7f8fb;
+  --color-lightBorder: #e6e8ee;
+  --color-softGold: #c8bc8a;
+  --color-softPurple: #cbbfe6;
+
+  /* Neutral + Accent (Dashboard redesign) */
+  --neutral-bg: #f7f8fb; /* page background */
+  --neutral-card: #ffffff; /* module/card background */
+  --neutral-ink: #111827; /* high-contrast text - dark ink */
+  --neutral-ink-2: #374151; /* secondary text */
+  --accent-lime: #c6d6ff; /* primary interactive accent (hover/CTA) - yellow */
+  --accent-lime-600: #a8c0ff; /* stronger lime for focus rings if needed */
+  --fab-bg: #1f2937; /* medium dark grey FAB background */
+  --sidebar-green-bg: #0f172a; /* dark gray sidebar background */
+
+  --ug-bg: var(--color-warmBg);
+  --ug-surface: rgba(255, 255, 255, 0.92);
+  --ug-surface-solid: #ffffff;
+  --ug-border: rgba(17, 24, 39, 0.12);
+  --ug-text: var(--color-ink);
+  --ug-muted: rgba(17, 24, 39, 0.62);
+  --ug-muted-2: rgba(17, 24, 39, 0.46);
+  --ug-hover: rgba(17, 24, 39, 0.04);
+  --ug-outline-active: rgba(17, 24, 39, 0.06);
+  --ug-accent: #f5ed31;
+  --ug-accent-soft: rgba(245, 237, 49, 0.25);
+  --ug-accent-blue: #93c5fd;
+  --ug-accent-blue-soft: rgba(147, 197, 253, 0.28);
+  --ug-accent-lilac: #c4b5fd;
+  --ug-accent-lilac-soft: rgba(196, 181, 253, 0.28);
+  --ug-accent-green: #86efac;
+  --ug-accent-green-soft: rgba(134, 239, 172, 0.22);
+  --ug-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+
+  /* Moss palette */
+  --color-moss-darker: #0d0c0b;
+  --color-moss-dark: #193821;
+  --color-moss-600: #4b5563;
+  --color-moss-500: #6b7280;
+  --color-moss-400: #9ca3af;
+  --color-moss-300: #d1d5db;
+  --color-moss-200: #e5e5e5;
+  --color-moss-100: #f3f4f6;
+  --color-moss-50: #f9fafb;
+
+  /* shadcn/ui HSL Variables */
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(0 0% 3.9%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(0 0% 3.9%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(0 0% 3.9%);
+  --color-primary: hsl(0 0% 9%);
+  --color-primary-foreground: hsl(0 0% 98%);
+  --color-secondary: hsl(0 0% 96.1%);
+  --color-secondary-foreground: hsl(0 0% 9%);
+  --color-muted: hsl(0 0% 96.1%);
+  --color-muted-foreground: hsl(0 0% 45.1%);
+  --color-accent: hsl(0 0% 96.1%);
+  --color-accent-foreground: hsl(0 0% 9%);
+  --color-destructive: hsl(0 84.2% 60.2%);
+  --color-destructive-foreground: hsl(0 0% 98%);
+  --color-border: hsl(0 0% 89.8%);
+  --color-input: hsl(0 0% 89.8%);
+  --color-ring: hsl(0 0% 3.9%);
+
+  /* Chart colors */
+  --color-chart-1: hsl(12 58% 68%);
+  --color-chart-2: hsl(173 40% 44%);
+  --color-chart-3: hsl(203 28% 32%);
+  --color-chart-4: hsl(43 52% 72%);
+  --color-chart-5: hsl(27 62% 72%);
+
+  /* Sidebar colors */
+  --color-sidebar-background: hsl(0 0% 98%);
+  --color-sidebar-foreground: hsl(240 5.3% 26.1%);
+  --color-sidebar-primary: hsl(240 5.9% 10%);
+  --color-sidebar-primary-foreground: hsl(0 0% 98%);
+  --color-sidebar-accent: hsl(240 4.8% 95.9%);
+  --color-sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --color-sidebar-border: hsl(220 13% 91%);
+  --color-sidebar-ring: hsl(215 70% 65%);
+
+  /* ---------------------------------------------------- */
+  /* --- Radii (Border Radius) --- */
+  /* ---------------------------------------------------- */
+
+  --radius-lg: 0.5rem;
+  --radius-md: calc(var(--radius-lg) - 2px);
+  --radius-sm: calc(var(--radius-lg) - 4px);
+  --radius-xl-16: 16px;
+  --radius-xl-12: 12px;
+  --radius-pill: 9999px;
+
+  /* ---------------------------------------------------- */
+  /* --- Keyframes & Animations (Fixed Syntax) --- */
+  /* ---------------------------------------------------- */
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+  @keyframes fadein {
+    0% {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Define animation utilities to use the keyframes above */
+  --animation-accordion-down: accordion-down 0.2s ease-out;
+  --animation-accordion-up: accordion-up 0.2s ease-out;
+  --animation-fadein: fadein 0.3s ease-in-out;
+}
+
+/* ---------------------------------------------------- */
+/* --- Dark Mode Overrides --- */
+/* ---------------------------------------------------- */
+
+.dark {
+  --color-background: hsl(0 0% 3.9%);
+  --color-foreground: hsl(0 0% 98%);
+  --color-card: hsl(0 0% 3.9%);
+  --color-card-foreground: hsl(0 0% 98%);
+  --color-popover: hsl(0 0% 3.9%);
+  --color-popover-foreground: hsl(0 0% 98%);
+  --color-primary: hsl(0 0% 98%);
+  --color-primary-foreground: hsl(0 0% 9%);
+  --color-secondary: hsl(0 0% 14.9%);
+  --color-secondary-foreground: hsl(0 0% 98%);
+  --color-muted: hsl(0 0% 14.9%);
+  --color-muted-foreground: hsl(0 0% 63.9%);
+  --color-accent: hsl(0 0% 14.9%);
+  --color-accent-foreground: hsl(0 0% 98%);
+  --color-destructive: hsl(0 62.8% 30.6%);
+  --color-destructive-foreground: hsl(0 0% 98%);
+  --color-border: hsl(0 0% 14.9%);
+  --color-input: hsl(0 0% 14.9%);
+  --color-ring: hsl(0 0% 83.1%);
+
+  --color-chart-1: hsl(220 55% 62%);
+  --color-chart-2: hsl(160 45% 52%);
+  --color-chart-3: hsl(30 60% 62%);
+  --color-chart-4: hsl(280 45% 70%);
+  --color-chart-5: hsl(340 55% 64%);
+}
+
+/* ---------------------------------------------------- */
+/* --- Standard CSS & Layout --- */
+/* ---------------------------------------------------- */
+
+:root {
+  --font-urbanist:
+    "Urbanist", system-ui, -apple-system, "Segoe UI", Roboto, Inter,
+    "Helvetica Neue", Arial, sans-serif;
+  --radius: var(--radius-lg);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  /* Fallback utilities for camelCase color tokens */
+  .bg-warmBg {
+    background-color: var(--color-warmBg);
+  }
+  .bg-goldYellow {
+    background-color: var(--color-goldYellow);
+  }
+  .bg-vividOrange {
+    background-color: var(--color-vividOrange);
+  }
+  .text-ink {
+    color: var(--color-ink);
+  }
+  .border-lightBorder {
+    border-color: var(--color-lightBorder);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-urbanist);
+  }
+}
+
+/* Note: box-shadow and background-image extensions cannot be moved to @theme. 
+You must define generic CSS classes for those specific cases if you need them. */
+
+/* ---------------------------------------------------- */
+/* --- Custom utilities for gradients and shadows (v4) --- */
+/* ---------------------------------------------------- */
+
+@utility bg-auth-ambient {
+  background-image: linear-gradient(
+    90deg,
+    #f3edb8 0%,
+    #f3edb8 50%,
+    #f3b59c 100%
+  );
+}
+
+@utility bg-card-grad {
+  background-image: linear-gradient(
+    180deg,
+    rgba(243, 237, 184, 0.55) 0%,
+    rgba(243, 181, 156, 0.45) 28%,
+    rgba(255, 255, 255, 0.85) 68%
+  );
+}
+
+@utility shadow-soft {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.06);
+}
+
+@utility shadow-card {
+  box-shadow: 0 12px 32px rgba(13, 12, 11, 0.08);
+}
+
+@utility shadow-focus {
+  box-shadow: 0 0 0 4px rgba(13, 12, 11, 0.06);
+}

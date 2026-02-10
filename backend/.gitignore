@@ -1,0 +1,70 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django DB and config
+*.sqlite3
+*.log
+*.pot
+*.pyc
+db.sqlite3
+
+# Django secret files
+.env
+.env.*
+
+# Migrations (optional to ignore)
+# You can comment this out if you want to keep migration files under version control
+# */migrations/
+# !*/migrations/__init__.py
+
+# Static and media files (optional – ignore if generated)
+staticfiles/
+media/
+static/
+assets/
+
+# Virtual environments
+env/
+venv/
+ENV/
+VENV/
+myenv
+.venv/
+.ENV/
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# macOS system files
+.DS_Store
+
+# pip tools
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Coverage reports
+htmlcov/
+.coverage
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# pytest
+.pytest_cache/
+
+# MyPy
+.mypy_cache/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Node (if using frontend assets)
+node_modules/

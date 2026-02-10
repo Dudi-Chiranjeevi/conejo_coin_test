@@ -1,0 +1,8 @@
+[
+    {
+      "origin": ["https://coenjocoin.net"],
+      "method": ["GET", "HEAD", "PUT", "POST", "DELETE"],
+      "responseHeader": ["Content-Type", "x-goog-meta-*"],
+      "maxAgeSeconds": 3600
+    }
+  ]
