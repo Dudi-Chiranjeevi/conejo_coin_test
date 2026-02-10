@@ -149,7 +149,9 @@ NGC_BASE_URL = config('NGC_BASE_URL', default='https://dealer-api.collectiblesgr
 NGC_USERNAME = config('NGC_USERNAME', default='ci-placeholder')
 #NGC_PASSWORD = config('NGC_PASSWORD')
 NGC_PASSWORD = config('NGC_PASSWORD', default='ci-placeholder')
-NGC_COMPANY = config('NGC_COMPANY')
+#NGC_COMPANY = config('NGC_COMPANY')
+NGC_COMPANY = config('NGC_COMPANY', default='ci-placeholder')
+
 
 # NGC API paths
 NGC_AUTH_PATH = config('NGC_AUTH_PATH', default='/auth/login')
