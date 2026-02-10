@@ -30,58 +30,55 @@ jobs:
       PYTHONUNBUFFERED: 1
 
     steps:
-      # 1️⃣ Checkout code
+      # 1️⃣ Checkout
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup Python (Django)
+      # 2️⃣ Python (Django)
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
 
-      # 3️⃣ Setup Node (Next.js) ✅ FIXED
+      # 3️⃣ Node (Next.js) ✅ FIXED (no cache)
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-          cache-dependency-path: |
-            frontend/package-lock.json
 
-      # 4️⃣ Install backend dependencies
+      # 4️⃣ Backend deps
       - name: Install Django dependencies
         working-directory: backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 5️⃣ Run Django migrations & tests
+      # 5️⃣ Django tests
       - name: Run Django tests
         working-directory: backend
         run: |
           python manage.py migrate --noinput
           python manage.py test --verbosity 2
 
-      # 6️⃣ Install frontend dependencies
+      # 6️⃣ Frontend deps
       - name: Install Next.js dependencies
         working-directory: frontend
         run: npm ci
 
-      # 7️⃣ Run Next.js tests (if present)
+      # 7️⃣ Frontend tests
       - name: Run Next.js tests
         working-directory: frontend
         run: npm run test --if-present
 
-      # 8️⃣ Validate Dockerfiles
+      # 8️⃣ Docker validation
       - name: Build backend Docker image
         run: docker build -t django-test ./backend
 
       - name: Build frontend Docker image
         run: docker build -t nextjs-test ./frontend
 
-      # 9️⃣ Create PR to dev (safe + idempotent)
+      # 9️⃣ Create PR (idempotent)
       - name: Create Pull Request to dev
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
