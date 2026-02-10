@@ -84,7 +84,7 @@ jobs:
         run: docker build -t django-test ./backend
 
       - name: Build frontend Docker image
-        run: docker build -t nextjs-test ./frontend
+        run: docker build -t nextjs-test ./collectibles-inventory
 
       # 🔟 Install GitHub CLI
       - name: Install GitHub CLI
