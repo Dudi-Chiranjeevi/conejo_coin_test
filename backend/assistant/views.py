@@ -33,6 +33,7 @@ SYSTEM_PROMPT = (
     "state what fields would be needed and propose a SQL query shape."
 )
 
+
 @extend_schema(
     request=ChatRequest,
     responses={200: QueryResult},
