@@ -71,12 +71,12 @@ jobs:
 
       # 7️⃣ Install Next.js dependencies
       - name: Install Next.js dependencies
-        working-directory: frontend
+        working-directory: collectibles-inventory
         run: npm ci
 
       # 8️⃣ Run Next.js tests
       - name: Run Next.js tests
-        working-directory: frontend
+        working-directory: collectibles-inventory
         run: npm run test --if-present
 
       # 9️⃣ Validate Dockerfiles
