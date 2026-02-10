@@ -1,3 +1,108 @@
+# name: CI - Feature Branch
+
+# on:
+#   push:
+#     branches:
+#       - "feature-*"
+
+# jobs:
+#   test-and-pr:
+#     runs-on: ubuntu-latest
+
+#     services:
+#       postgres:
+#         image: postgres:12
+#         env:
+#           POSTGRES_DB: test_db
+#           POSTGRES_USER: test_user
+#           POSTGRES_PASSWORD: test_pass
+#         ports:
+#           - 5432:5432
+#         options: >-
+#           --health-cmd="pg_isready -U test_user -d test_db"
+#           --health-interval=10s
+#           --health-timeout=5s
+#           --health-retries=5
+
+#     env:
+#       DATABASE_URL: postgres://test_user:test_pass@localhost:5432/test_db
+#       PYTHONUNBUFFERED: 1
+#       PYTHONPATH: ${{ github.workspace }}/backend
+#       NGC_USERNAME: ci-placeholder
+#       NGC_PASSWORD: ci-placeholder
+
+#     steps:
+#       # 1️⃣ Checkout
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       # 2️⃣ Setup Python
+#       - name: Setup Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: "3.11"
+#           cache: pip
+
+#       # 3️⃣ Setup Node
+#       - name: Setup Node
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: "20"
+
+#       # 4️⃣ Wait for Postgres
+#       - name: Wait for PostgreSQL
+#         run: |
+#           for i in {1..10}; do
+#             pg_isready -h localhost -p 5432 -U test_user && break
+#             echo "Waiting for postgres..."
+#             sleep 3
+#           done
+
+#       # 5️⃣ Install Django dependencies
+#       - name: Install Django dependencies
+#         working-directory: backend
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install -r requirements.txt
+
+#       # 6️⃣ Run Django migrations & tests (SKIPPED for now)
+#       - name: Skip Django migrations & tests
+#         run: echo "⚠️ Skipping Django migrations & tests for now"
+
+#       # 7️⃣ Install Next.js dependencies
+#       - name: Install Next.js dependencies
+#         working-directory: collectibles-inventory
+#         run: npm ci
+
+#       # 8️⃣ Run Next.js tests
+#       - name: Run Next.js tests
+#         working-directory: collectibles-inventory
+#         run: npm run test --if-present
+
+#       # 9️⃣ Validate Dockerfiles
+#       - name: Build backend Docker image
+#         run: docker build -t django-test ./backend
+
+#       - name: Build frontend Docker image
+#         run: docker build -t nextjs-test ./collectibles-inventory
+
+#       # 🔟 Install GitHub CLI
+#       - name: Install GitHub CLI
+#         run: sudo apt-get install gh -y
+
+#       # 1️⃣1️⃣ Create PR (idempotent)
+#       - name: Create Pull Request to dev
+#         env:
+#           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         run: |
+#           gh pr create \
+#             --base dev \
+#             --head "${{ github.ref_name }}" \
+#             --title "Merge ${{ github.ref_name }} into dev" \
+#             --body "✅ CI passed (Django skipped, Next.js + Docker validated). Ready for review." \
+#           || echo "ℹ️ PR already exists. Skipping."
+
+
 name: CI - Feature Branch
 
 on:
@@ -32,7 +137,7 @@ jobs:
       NGC_PASSWORD: ci-placeholder
 
     steps:
-      # 1️⃣ Checkout
+      # 1️⃣ Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -49,10 +154,10 @@ jobs:
         with:
           node-version: "20"
 
-      # 4️⃣ Wait for Postgres
+      # 4️⃣ Wait for PostgreSQL to be ready
       - name: Wait for PostgreSQL
         run: |
-          for i in {1..10}; do
+          for i in {1..15}; do
             pg_isready -h localhost -p 5432 -U test_user && break
             echo "Waiting for postgres..."
             sleep 3
@@ -65,9 +170,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 6️⃣ Run Django migrations & tests (SKIPPED for now)
-      - name: Skip Django migrations & tests
-        run: echo "⚠️ Skipping Django migrations & tests for now"
+      # 6️⃣ Run Django migrations & tests
+      - name: Run Django migrations & tests
+        working-directory: backend
+        run: |
+          python manage.py migrate
+          python manage.py test
 
       # 7️⃣ Install Next.js dependencies
       - name: Install Next.js dependencies
@@ -88,9 +196,9 @@ jobs:
 
       # 🔟 Install GitHub CLI
       - name: Install GitHub CLI
-        run: sudo apt-get install gh -y
+        run: sudo apt-get update && sudo apt-get install gh -y
 
-      # 1️⃣1️⃣ Create PR (idempotent)
+      # 1️⃣1️⃣ Create Pull Request to dev (idempotent)
       - name: Create Pull Request to dev
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -99,5 +207,5 @@ jobs:
             --base dev \
             --head "${{ github.ref_name }}" \
             --title "Merge ${{ github.ref_name }} into dev" \
-            --body "✅ CI passed (Django skipped, Next.js + Docker validated). Ready for review." \
+            --body "✅ CI passed (Django + Next.js + Docker validated). Ready for review." \
           || echo "ℹ️ PR already exists. Skipping."
