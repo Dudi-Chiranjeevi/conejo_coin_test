@@ -39,41 +39,40 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
+          cache: pip
 
-      # 3️⃣ Setup Node (Next.js)
+      # 3️⃣ Setup Node (Next.js) ✅ FIXED
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
 
       # 4️⃣ Install backend dependencies
       - name: Install Django dependencies
+        working-directory: backend
         run: |
-          cd backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       # 5️⃣ Run Django migrations & tests
       - name: Run Django tests
+        working-directory: backend
         run: |
-          cd backend
           python manage.py migrate --noinput
           python manage.py test --verbosity 2
 
-      # 6️⃣ Install frontend dependencies
+      # 6️⃣ Install frontend dependencies ✅ FIXED
       - name: Install Next.js dependencies
-        run: |
-          cd frontend
-          npm ci
+        working-directory: frontend
+        run: npm ci
 
       # 7️⃣ Run Next.js tests (if present)
       - name: Run Next.js tests
-        run: |
-          cd frontend
-          npm run test --if-present
+        working-directory: frontend
+        run: npm run test --if-present
 
       # 8️⃣ Validate Dockerfiles
       - name: Build backend Docker image
