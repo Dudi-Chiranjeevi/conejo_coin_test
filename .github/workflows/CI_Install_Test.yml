@@ -26,7 +26,6 @@ jobs:
 
     env:
       DATABASE_URL: postgres://test_user:test_pass@localhost:5432/test_db
-      DJANGO_SETTINGS_MODULE: config.settings
       PYTHONUNBUFFERED: 1
       PYTHONPATH: ${{ github.workspace }}/backend
 
@@ -56,7 +55,7 @@ jobs:
           pip install -r requirements.txt
 
       # 5️⃣ Run Django migrations & tests
-      - name: Run Django tests
+      - name: Run Django migrations & tests
         working-directory: backend
         run: |
           python manage.py migrate --noinput
