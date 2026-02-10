@@ -35,5 +35,6 @@ COPY ./entrypoint.sh /entrypoint.sh
 # Fix potential CRLF + make executable
 RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
-# Start
+# Start the container
 CMD ["/entrypoint.sh"]
+

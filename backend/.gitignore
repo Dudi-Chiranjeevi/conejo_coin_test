@@ -12,6 +12,7 @@ db.sqlite3
 
 # Django secret files
 .env
+
 .env.*
 
 # Migrations (optional to ignore)
