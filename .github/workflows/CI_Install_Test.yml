@@ -79,25 +79,25 @@ jobs:
         working-directory: collectibles-inventory
         run: npm run test --if-present
 
-      # # 9️⃣ Validate Dockerfiles
-      # - name: Build backend Docker image
-      #   run: docker build -t django-test ./backend
+      # 9️⃣ Validate Dockerfiles
+      - name: Build backend Docker image
+        run: docker build -t django-test ./backend
 
-      # - name: Build frontend Docker image
-      #   run: docker build -t nextjs-test ./collectibles-inventory
+      - name: Build frontend Docker image
+        run: docker build -t nextjs-test ./collectibles-inventory
 
-      # # 🔟 Install GitHub CLI
-      # - name: Install GitHub CLI
-      #   run: sudo apt-get install gh -y
+      # 🔟 Install GitHub CLI
+      - name: Install GitHub CLI
+        run: sudo apt-get update && sudo apt-get install gh -y
 
-      # # 1️⃣1️⃣ Create PR (idempotent)
-      # - name: Create Pull Request to dev
-      #   env:
-      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     gh pr create \
-      #       --base dev \
-      #       --head "${{ github.ref_name }}" \
-      #       --title "Merge ${{ github.ref_name }} into dev" \
-      #       --body "✅ CI passed (Django skipped, Next.js + Docker validated). Ready for review." \
-      #     || echo "ℹ️ PR already exists. Skipping."
+      # 1️⃣1️⃣ Create Pull Request to dev (idempotent)
+      - name: Create Pull Request to dev
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base dev \
+            --head "${{ github.ref_name }}" \
+            --title "Merge ${{ github.ref_name }} into dev" \
+            --body "✅ CI passed (Django skipped, Next.js + Docker validated). Ready for review." \
+          || echo "ℹ️ PR already exists. Skipping."
