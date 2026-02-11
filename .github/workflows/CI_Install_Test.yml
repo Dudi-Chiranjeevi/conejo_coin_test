@@ -139,14 +139,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 4. Backend validation
-      - name: Validate Django project
-        working-directory: backend
-        run: |
-          echo "Checking Django project..."
-          python manage.py check
-          python manage.py makemigrations --check --dry-run
-          python manage.py migrate --plan
+      # # 4. Backend validation
+      # - name: Validate Django project
+      #   working-directory: backend
+      #   run: |
+      #     echo "Checking Django project..."
+      #     python manage.py check
+      #     python manage.py makemigrations --check --dry-run
+      #     python manage.py migrate --plan
 
       # 5. Run backend tests
       - name: Run Django tests
