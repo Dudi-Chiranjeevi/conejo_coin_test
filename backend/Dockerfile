@@ -38,7 +38,7 @@
 # # Start the container
 # CMD ["/entrypoint.sh"]
 
-======================================
+# ======================================
 
 # # Use official Python slim image
 # FROM python:3.12-slim
@@ -81,7 +81,7 @@
 # # Start the container
 # CMD ["/entrypoint.sh"]
 
-===============================
+# ===============================
 
 # # Use official Python slim image
 # FROM python:3.12-slim
@@ -127,7 +127,7 @@
 # # Start the container
 # CMD ["/entrypoint.sh"]
 
-===================================
+# ===================================
 
 # Use full Python image to get more disk space
 FROM python:3.12
