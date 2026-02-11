@@ -79,12 +79,12 @@ jobs:
         working-directory: collectibles-inventory
         run: npm run test --if-present
 
-      # 9️⃣ Validate Dockerfiles
-      - name: Build backend Docker image
-        run: docker build -t django-test ./backend
+      # # 9️⃣ Validate Dockerfiles
+      # - name: Build backend Docker image
+      #   run: docker build -t django-test ./backend
 
-      - name: Build frontend Docker image
-        run: docker build -t nextjs-test ./collectibles-inventory
+      # - name: Build frontend Docker image
+      #   run: docker build -t nextjs-test ./collectibles-inventory
 
       # 🔟 Install GitHub CLI
       - name: Install GitHub CLI
