@@ -103,88 +103,78 @@
 #           || echo "ℹ️ PR already exists. Skipping."
 
 
-name: Full CI Pipeline
+
+name: CI - Feature Branch
 
 on:
   push:
-    branches: [ main, dev, feature-* ]
-  pull_request:
-    branches: [ main, dev ]
+    branches:
+      - "feature-*"
+
 
 jobs:
-  backend:
-    name: Django Backend Validation
+  ci:
+    name: Full Backend + Frontend Validation
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repo
+      # 1. Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Setup Python
+      ##########################
+      # Backend (Django) Setup #
+      ##########################
+
+      # 2. Setup Python
       - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
-      # Install dependencies
-      - name: Install backend dependencies
+      # 3. Install backend dependencies
+      - name: Install Django dependencies
         working-directory: backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Basic Django checks
-      - name: Check Django project
+      # 4. Backend validation
+      - name: Validate Django project
         working-directory: backend
         run: |
+          echo "Checking Django project..."
           python manage.py check
           python manage.py makemigrations --check --dry-run
           python manage.py migrate --plan
 
-      # Run Django tests
+      # 5. Run backend tests
       - name: Run Django tests
         working-directory: backend
-        run: |
-          python manage.py test --verbosity 2
+        run: python manage.py test --verbosity 2
 
+      ##########################
+      # Frontend (Next.js) Setup #
+      ##########################
 
-  frontend:
-    name: Next.js Frontend Validation
-    runs-on: ubuntu-latest
-    steps:
-      # Checkout repo
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Setup Node.js
+      # 6. Setup Node.js
       - name: Setup Node.js 20
         uses: actions/setup-node@v3
         with:
           node-version: 20
           cache: 'npm'
 
-      # Install dependencies
-      - name: Install frontend dependencies
+      # 7. Install frontend dependencies
+      - name: Install Next.js dependencies
         working-directory: frontend
         run: npm ci
 
-      # Run lint (if ESLint is configured)
-      - name: Run ESLint
-        working-directory: frontend
-        run: npm run lint || echo "No ESLint configured, skipping"
-
-      # Run type checking (if TypeScript)
-      - name: Type check
-        working-directory: frontend
-        run: npx tsc --noEmit || echo "No TypeScript configured, skipping"
-
-      # Run frontend tests
-      - name: Run tests
+      # 8. Run frontend tests
+      - name: Run frontend tests
         working-directory: frontend
         run: npm test -- --watchAll=false --ci
 
-      # Build the project
+      # 9. Build frontend
       - name: Build Next.js app
         working-directory: frontend
         run: npm run build
