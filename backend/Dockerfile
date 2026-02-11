@@ -38,6 +38,8 @@
 # # Start the container
 # CMD ["/entrypoint.sh"]
 
+======================================
+
 # # Use official Python slim image
 # FROM python:3.12-slim
 
@@ -79,16 +81,61 @@
 # # Start the container
 # CMD ["/entrypoint.sh"]
 
+===============================
 
-# Use official Python slim image
-FROM python:3.12-slim
+# # Use official Python slim image
+# FROM python:3.12-slim
 
-# Environment variables
+# # Environment variables
+# ENV PYTHONDONTWRITEBYTECODE=1 \
+#     PYTHONUNBUFFERED=1 \
+#     PIP_NO_CACHE_DIR=1
+
+# # Workdir
+# WORKDIR /app
+
+# # System dependencies
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#     gcc libpq-dev netcat-traditional \
+#     libzbar0 \
+#     libglib2.0-0 libgl1 libsm6 libxext6 libxrender1 \
+#     && rm -rf /var/lib/apt/lists/*
+
+# # Add temporary swap to avoid "no space left" in CI
+# RUN fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+
+# # Copy requirements first (for caching)
+# COPY requirements.txt .
+
+# # Install heavy packages first (CPU-only Torch to reduce size)
+# RUN pip install --no-cache-dir numpy torch==2.2.0+cpu triton pgvector==0.2.5 --extra-index-url https://download.pytorch.org/whl/cpu
+
+# # Install remaining dependencies
+# RUN pip install --no-cache-dir -r requirements.txt
+
+# # Copy the app code
+# COPY . .
+
+# # Build-time safe envs
+# ENV USE_SQLITE_FOR_BUILD=true
+# ENV DJANGO_SECRET_KEY=build-placeholder
+
+# # Entrypoint script
+# COPY ./entrypoint.sh /entrypoint.sh
+# RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
+
+# # Start the container
+# CMD ["/entrypoint.sh"]
+
+===================================
+
+# Use full Python image to get more disk space
+FROM python:3.12
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
-# Workdir
 WORKDIR /app
 
 # System dependencies
@@ -98,28 +145,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 libgl1 libsm6 libxext6 libxrender1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Add temporary swap to avoid "no space left" in CI
-RUN fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
-
 # Copy requirements first (for caching)
 COPY requirements.txt .
 
-# Install heavy packages first (CPU-only Torch to reduce size)
-RUN pip install --no-cache-dir numpy torch==2.2.0+cpu triton pgvector==0.2.5 --extra-index-url https://download.pytorch.org/whl/cpu
+# Install heavy packages first (CPU-only)
+RUN pip install --no-cache-dir torch==2.2.0+cpu triton numpy pgvector==0.2.5 --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Install remaining dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the app code
+# Copy app code
 COPY . .
 
-# Build-time safe envs
+# Build-time envs
 ENV USE_SQLITE_FOR_BUILD=true
 ENV DJANGO_SECRET_KEY=build-placeholder
 
-# Entrypoint script
+# Entrypoint
 COPY ./entrypoint.sh /entrypoint.sh
 RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
-# Start the container
 CMD ["/entrypoint.sh"]
