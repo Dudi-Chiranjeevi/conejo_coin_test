@@ -190,7 +190,6 @@ ci:
 name: Full Backend + Frontend Validation
 runs-on: ubuntu-latest
 
-```
 # Only CI flag (no secrets, no external variables)
 env:
   CI: true
