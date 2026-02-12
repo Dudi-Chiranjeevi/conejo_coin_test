@@ -104,75 +104,149 @@
 
 
 
+# name: CI - Feature Branch
+
+# on:
+#   push:
+#     branches:
+#       - "feature-*"
+
+# jobs:
+#   ci:
+#     name: Full Backend + Frontend Validation
+#     runs-on: ubuntu-latest
+
+#     # 🔐 Environment variables for Django (from GitHub Secrets)
+#     env:
+#       NGC_COMPANY: ${{ secrets.NGC_COMPANY }}
+#       NGC_USERNAME: ${{ secrets.NGC_USERNAME }}
+#       NGC_PASSWORD: ${{ secrets.NGC_PASSWORD }}
+#       DEBUG: False
+#       CI: true
+
+#     steps:
+#       # 1. Checkout code
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       ##########################
+#       # Backend (Django) Setup #
+#       ##########################
+
+#       # 2. Setup Python
+#       - name: Set up Python 3.11
+#         uses: actions/setup-python@v4
+#         with:
+#           python-version: 3.11
+
+#       # 3. Install backend dependencies
+#       - name: Install Django dependencies
+#         working-directory: backend
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install -r requirements.txt
+
+#       # 4. Run backend tests
+#       - name: Run Django tests
+#         working-directory: backend
+#         run: python manage.py test --verbosity 2
+
+#       ##########################
+#       # Frontend (Next.js) Setup #
+#       ##########################
+
+#       # 5. Setup Node.js
+#       - name: Setup Node.js 20
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: 20
+#           cache: 'npm'
+
+#       # 6. Install frontend dependencies
+#       - name: Install Next.js dependencies
+#         working-directory: frontend
+#         run: npm ci
+
+#       # 7. Run frontend tests
+#       - name: Run frontend tests
+#         working-directory: frontend
+#         run: npm test -- --watchAll=false --ci
+
+#       # 8. Build frontend
+#       - name: Build Next.js app
+#         working-directory: frontend
+#         run: npm run build
+
+
 name: CI - Feature Branch
 
 on:
-  push:
-    branches:
-      - "feature-*"
+push:
+branches:
+- "feature-*"
 
 jobs:
-  ci:
-    name: Full Backend + Frontend Validation
-    runs-on: ubuntu-latest
+ci:
+name: Full Backend + Frontend Validation
+runs-on: ubuntu-latest
 
-    # 🔐 Environment variables for Django (from GitHub Secrets)
-    env:
-      NGC_COMPANY: ${{ secrets.NGC_COMPANY }}
-      NGC_USERNAME: ${{ secrets.NGC_USERNAME }}
-      NGC_PASSWORD: ${{ secrets.NGC_PASSWORD }}
-      DEBUG: False
-      CI: true
+```
+# Only CI flag (no secrets, no external variables)
+env:
+  CI: true
+  DEBUG: False
 
-    steps:
-      # 1. Checkout code
-      - name: Checkout code
-        uses: actions/checkout@v3
+steps:
+  # 1️⃣ Checkout Repository
+  - name: Checkout code
+    uses: actions/checkout@v4
 
-      ##########################
-      # Backend (Django) Setup #
-      ##########################
+  ##########################
+  # Backend (Django) Setup #
+  ##########################
 
-      # 2. Setup Python
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.11
+  # 2️⃣ Setup Python
+  - name: Set up Python 3.11
+    uses: actions/setup-python@v5
+    with:
+      python-version: 3.11
 
-      # 3. Install backend dependencies
-      - name: Install Django dependencies
-        working-directory: backend
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+  # 3️⃣ Install Backend Dependencies
+  - name: Install Django dependencies
+    working-directory: backend
+    run: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
 
-      # 4. Run backend tests
-      - name: Run Django tests
-        working-directory: backend
-        run: python manage.py test --verbosity 2
+  # 4️⃣ Run Django Tests
+  - name: Run Django tests
+    working-directory: backend
+    run: |
+      python manage.py test --verbosity 2
 
-      ##########################
-      # Frontend (Next.js) Setup #
-      ##########################
+  ##########################
+  # Frontend (Next.js) Setup #
+  ##########################
 
-      # 5. Setup Node.js
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: 'npm'
+  # 5️⃣ Setup Node.js
+  - name: Setup Node.js 20
+    uses: actions/setup-node@v4
+    with:
+      node-version: 20
+      cache: npm
+      cache-dependency-path: frontend/package-lock.json
 
-      # 6. Install frontend dependencies
-      - name: Install Next.js dependencies
-        working-directory: frontend
-        run: npm ci
+  # 6️⃣ Install Frontend Dependencies
+  - name: Install Next.js dependencies
+    working-directory: frontend
+    run: npm ci
 
-      # 7. Run frontend tests
-      - name: Run frontend tests
-        working-directory: frontend
-        run: npm test -- --watchAll=false --ci
+  # 7️⃣ Run Frontend Tests
+  - name: Run frontend tests
+    working-directory: frontend
+    run: npm test -- --watchAll=false --ci
 
-      # 8. Build frontend
-      - name: Build Next.js app
-        working-directory: frontend
-        run: npm run build
+  # 8️⃣ Build Frontend
+  - name: Build Next.js app
+    working-directory: frontend
+    run: npm run build
