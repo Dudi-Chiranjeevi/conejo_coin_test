@@ -181,71 +181,58 @@
 name: CI - Feature Branch
 
 on:
-push:
-branches:
-- "feature-*"
+  push:
+    branches:
+      - "feature-*"
 
 jobs:
-ci:
-name: Full Backend + Frontend Validation
-runs-on: ubuntu-latest
+  ci:
+    name: Full Backend + Frontend Validation
+    runs-on: ubuntu-latest
 
-# Only CI flag (no secrets, no external variables)
-env:
-  CI: true
-  DEBUG: False
+    # Only CI flag (no secrets, no external variables)
+    env:
+      CI: true
+      DEBUG: False
 
-steps:
-  # 1️⃣ Checkout Repository
-  - name: Checkout code
-    uses: actions/checkout@v4
+    steps:
+      # 1️⃣ Checkout Repository
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  ##########################
-  # Backend (Django) Setup #
-  ##########################
+      ##########################
+      # Backend (Django) Setup #
+      ##########################
 
-  # 2️⃣ Setup Python
-  - name: Set up Python 3.11
-    uses: actions/setup-python@v5
-    with:
-      python-version: 3.11
+      # 2️⃣ Setup Python
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
 
-  # 3️⃣ Install Backend Dependencies
-  - name: Install Django dependencies
-    working-directory: backend
-    run: |
-      python -m pip install --upgrade pip
-      pip install -r requirements.txt
+      # 3️⃣ Install Backend Dependencies
+      - name: Install Django dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-  # 4️⃣ Run Django Tests
-  - name: Run Django tests
-    working-directory: backend
-    run: |
-      python manage.py test --verbosity 2
+      # 4️⃣ Run Django Tests
+      - name: Run Django tests
+        working-directory: backend
+        run: |
+          python manage.py test --verbosity 2
 
-  ##########################
-  # Frontend (Next.js) Setup #
-  ##########################
+      ##########################
+      # Frontend (Next.js) Setup #
+      ##########################
 
-  # 5️⃣ Setup Node.js
-  - name: Setup Node.js 20
-    uses: actions/setup-node@v4
-    with:
-      node-version: 20
-      cache: npm
-      cache-dependency-path: frontend/package-lock.json
+      # 5️⃣ Setup Node.js
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
-  # 6️⃣ Install Frontend Dependencies
-  - name: Install Next.js dependencies
-    working-directory: frontend
-    run: npm ci
-
-  # 7️⃣ Run Frontend Tests
-  - name: Run frontend tests
-    working-directory: frontend
-    run: npm test -- --watchAll=false --ci
-
-  # 8️⃣ Build Frontend
-  - name: Build Next.js app
-    working-directory: frontend
-    run: npm run build
+      # 6️⃣ In
