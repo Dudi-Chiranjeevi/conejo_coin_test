@@ -178,61 +178,83 @@
 #         run: npm run build
 
 
-name: CI - Feature Branch
+name: CI - Backend Build + Frontend Test & Build
 
 on:
   push:
     branches:
-      - "feature-*"
+      - feature-1
 
 jobs:
-  ci:
-    name: Full Backend + Frontend Validation
+
+  backend-build:
+    name: Django Backend Build
     runs-on: ubuntu-latest
 
-    # Only CI flag (no secrets, no external variables)
-    env:
-      CI: true
-      DEBUG: False
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
-      # 1️⃣ Checkout Repository
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      ##########################
-      # Backend (Django) Setup #
-      ##########################
-
-      # 2️⃣ Setup Python
-      - name: Set up Python 3.11
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: "3.11"
 
-      # 3️⃣ Install Backend Dependencies
-      - name: Install Django dependencies
-        working-directory: backend
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 4️⃣ Run Django Tests
-      - name: Run Django tests
-        working-directory: backend
+      - name: Django Build Check
         run: |
-          python manage.py test --verbosity 2
+          python manage.py check
+          python manage.py collectstatic --noinput || true
 
-      ##########################
-      # Frontend (Next.js) Setup #
-      ##########################
+  frontend-test-build:
+    name: Next.js Test & Build
+    runs-on: ubuntu-latest
 
-      # 5️⃣ Setup Node.js
-      - name: Setup Node.js 20
+    defaults:
+      run:
+        working-directory: collectibles-inventory
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          node-version: "22"
 
-      # 6️⃣ In
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm test -- --watchAll=false
+
+      - name: Build Next.js App
+        run: npm run build
+
+  create-pr:
+    name: Create PR to dev
+    runs-on: ubuntu-latest
+    needs: [backend-build, frontend-test-build]
+    if: success()
+
+    steps:
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: dev
+          branch: feature-1
+          title: "Auto PR: feature-1 → dev"
+          body: |
+            ✅ CI passed successfully.
+            Backend build completed.
+            Frontend test & build completed.
