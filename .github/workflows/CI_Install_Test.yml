@@ -118,7 +118,7 @@ jobs:
 
     # 🔐 Environment variables for Django (from GitHub Secrets)
     env:
-      SECRET_KEY: ${{ secrets.NGC_COMPANY }}
+      NGC_COMPANY: ${{ secrets.NGC_COMPANY }}
       NGC_USERNAME: ${{ secrets.NGC_USERNAME }}
       NGC_PASSWORD: ${{ secrets.NGC_PASSWORD }}
       DEBUG: False
