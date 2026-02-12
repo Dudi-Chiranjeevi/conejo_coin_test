@@ -111,11 +111,18 @@ on:
     branches:
       - "feature-*"
 
-
 jobs:
   ci:
     name: Full Backend + Frontend Validation
     runs-on: ubuntu-latest
+
+    # 🔐 Environment variables for Django (from GitHub Secrets)
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      NGC_USERNAME: ${{ secrets.NGC_USERNAME }}
+      NGC_PASSWORD: ${{ secrets.NGC_PASSWORD }}
+      DEBUG: False
+      CI: true
 
     steps:
       # 1. Checkout code
@@ -139,16 +146,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # # 4. Backend validation
-      # - name: Validate Django project
-      #   working-directory: backend
-      #   run: |
-      #     echo "Checking Django project..."
-      #     python manage.py check
-      #     python manage.py makemigrations --check --dry-run
-      #     python manage.py migrate --plan
-
-      # 5. Run backend tests
+      # 4. Run backend tests
       - name: Run Django tests
         working-directory: backend
         run: python manage.py test --verbosity 2
@@ -157,24 +155,24 @@ jobs:
       # Frontend (Next.js) Setup #
       ##########################
 
-      # 6. Setup Node.js
+      # 5. Setup Node.js
       - name: Setup Node.js 20
         uses: actions/setup-node@v3
         with:
           node-version: 20
           cache: 'npm'
 
-      # 7. Install frontend dependencies
+      # 6. Install frontend dependencies
       - name: Install Next.js dependencies
         working-directory: frontend
         run: npm ci
 
-      # 8. Run frontend tests
+      # 7. Run frontend tests
       - name: Run frontend tests
         working-directory: frontend
         run: npm test -- --watchAll=false --ci
 
-      # 9. Build frontend
+      # 8. Build frontend
       - name: Build Next.js app
         working-directory: frontend
         run: npm run build
