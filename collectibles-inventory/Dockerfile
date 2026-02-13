@@ -44,38 +44,78 @@
 
 
 
-# Build stage
+# # Build stage
+# FROM node:22-alpine AS builder
+# WORKDIR /app
+
+# # Copy package.json and install dependencies
+# COPY package*.json ./
+# RUN npm ci
+
+# # Copy all files
+# COPY . .
+
+# # Build the Next.js app
+# ENV NODE_ENV=production
+# RUN npm run build
+
+# # Production stage
+# FROM node:22-alpine
+# WORKDIR /app
+
+# # Copy built assets from the builder stage
+# COPY --from=builder /app/.next ./.next
+# COPY --from=builder /app/node_modules ./node_modules
+# COPY --from=builder /app/public ./public
+# COPY --from=builder /app/package*.json ./
+
+# # Set environment variables
+# ENV NODE_ENV=production
+# ENV PORT=8080
+# ENV API_BASE_URL=https://www.conejocoin.net
+
+# # Expose port
+# EXPOSE 8080
+
+# # Use CMD directly - NO ENTRYPOINT
+# CMD ["npx", "next", "start", "-H", "0.0.0.0", "-p", "8080"]
+
+
+
+# =========================
+# Build Stage
+# =========================
 FROM node:22-alpine AS builder
 WORKDIR /app
 
-# Copy package.json and install dependencies
+# Install dependencies
 COPY package*.json ./
 RUN npm ci
 
-# Copy all files
+# Copy source
 COPY . .
 
-# Build the Next.js app
+# Build Next.js app
 ENV NODE_ENV=production
 RUN npm run build
 
-# Production stage
+# =========================
+# Production Stage
+# =========================
 FROM node:22-alpine
 WORKDIR /app
 
-# Copy built assets from the builder stage
+# Copy build artifacts
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
 
-# Set environment variables
+# Environment variables
 ENV NODE_ENV=production
 ENV PORT=8080
 ENV API_BASE_URL=https://www.conejocoin.net
 
-# Expose port
 EXPOSE 8080
 
-# Use CMD directly - NO ENTRYPOINT
 CMD ["npx", "next", "start", "-H", "0.0.0.0", "-p", "8080"]
