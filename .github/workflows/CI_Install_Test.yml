@@ -3,15 +3,7 @@ name: CI - Backend Build + Frontend Build
 on:
   push:
     branches:
-      - feature-1
-
-env:
-  NGC_COMPANY: ${{ secrets.NGC_COMPANY }}
-  NGC_USERNAME: ${{ secrets.NGC_USERNAME }}
-  NGC_PASSWORD: ${{ secrets.NGC_PASSWORD }}
-  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-  DEBUG: "False"
-  CI: "true"
+      - feature-*
 
 jobs:
   ci:
@@ -62,14 +54,13 @@ jobs:
         run: npm run build
 
       # -----------------------------
-      # Create PR to dev branch
+      # Create PR to dev
       # -----------------------------
-      - name: Create Pull Request
-        run: |
-          gh pr create \
-            --base dev \
-            --head collectibles-inventory \
-            --title "Auto PR: collectibles-inventory → dev" \
-            --body "✅ CI passed successfully. Backend and Frontend build completed."
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Pull Request to Dev
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: dev
+          title: "Auto PR: feature-1 → dev"
+          body: "CI passed successfully. Ready to merge into dev."
+          draft: false
