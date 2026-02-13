@@ -235,15 +235,15 @@ jobs:
           node-version: "22"
 
       - name: Install Frontend Dependencies
-        working-directory: frontend
+        working-directory: collectibles-inventory
         run: npm ci
 
       - name: Run Frontend Tests
-        working-directory: frontend
+        working-directory: collectibles-inventory
         run: npm test -- --watchAll=false
 
       - name: Build Frontend
-        working-directory: frontend
+        working-directory: collectibles-inventory
         run: npm run build
 
       # -----------------------------
