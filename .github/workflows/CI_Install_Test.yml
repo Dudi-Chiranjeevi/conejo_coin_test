@@ -178,12 +178,12 @@
 #         run: npm run build
 
 
-name: CI - Backend Build + Frontend Test & Build
+name: CI - Backend Build + Frontend Build
 
 on:
   push:
     branches:
-      - feature-1
+      - collectibles-inventory
 
 env:
   NGC_COMPANY: ${{ secrets.NGC_COMPANY }}
@@ -223,11 +223,10 @@ jobs:
       - name: Django Build Check
         working-directory: backend
         run: |
-          # python manage.py check
           python manage.py collectstatic --noinput || true
 
       # -----------------------------
-      # Frontend - Next.js Test + Build
+      # Frontend - Next.js Build
       # -----------------------------
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -238,10 +237,6 @@ jobs:
         working-directory: collectibles-inventory
         run: npm ci
 
-      # - name: Run Frontend Tests
-      #   working-directory: collectibles-inventory
-      #   run: npm test -- --watchAll=false
-
       - name: Build Frontend
         working-directory: collectibles-inventory
         run: npm run build
@@ -249,15 +244,13 @@ jobs:
       # -----------------------------
       # Create PR to dev branch
       # -----------------------------
-      - name: Create Pull Request to dev
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: dev
-          branch: feature-1
-          title: "Auto PR: feature-1 → dev"
-          body: |
-            ✅ CI completed successfully.
-            - Django backend build passed
-            - Next.js test passed
-            - Next.js build successful
+      - name: Create Pull Request
+        run: |
+          gh pr create \
+            --base dev \
+            --head collectibles-inventory \
+            --title "Auto PR: collectibles-inventory → dev" \
+            --body "✅ CI passed successfully. Backend and Frontend build completed."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
