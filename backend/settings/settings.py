@@ -145,12 +145,9 @@ SESSION_COOKIE_SAMESITE = config('SESSION_COOKIE_SAMESITE', default='Lax')
 SESSION_COOKIE_AGE = config('SESSION_COOKIE_AGE', default=3600, cast=int)
 
 NGC_BASE_URL = config('NGC_BASE_URL', default='https://dealer-api.collectiblesgroup.com')
-#NGC_USERNAME = config('NGC_USERNAME')
-NGC_USERNAME = config('NGC_USERNAME', default='ci-placeholder')
-#NGC_PASSWORD = config('NGC_PASSWORD')
-NGC_PASSWORD = config('NGC_PASSWORD', default='ci-placeholder')
-#NGC_COMPANY = config('NGC_COMPANY')
-NGC_COMPANY = config('NGC_COMPANY', default='ci-placeholder')
+NGC_USERNAME = config('NGC_USERNAME')
+NGC_PASSWORD = config('NGC_PASSWORD')
+NGC_COMPANY = config('NGC_COMPANY')
 
 
 # NGC API paths
