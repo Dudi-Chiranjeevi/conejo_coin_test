@@ -1,12 +1,15 @@
 name: CD - Deploy to Cloud Run
 
 on:
-  push:
+  pull_request:
     branches:
       - dev
+    types:
+      - closed
 
 jobs:
   deploy:
+    if: github.event.pull_request.merged == true
     name: Build & Deploy
     runs-on: ubuntu-latest
 
@@ -14,9 +17,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # -----------------------------
       # Authenticate to Google Cloud
-      # -----------------------------
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -25,50 +26,34 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Configure Docker for Artifact Registry
+      - name: Configure Docker
         run: |
           gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev
 
-      # -----------------------------
-      # Build Backend Image
-      # -----------------------------
-      - name: Build Backend Docker Image
+      # Build & Push Backend
+      - name: Build Backend
         run: |
-          docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/backend:latest ./backend
+          docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/backend:${{ github.sha }} ./backend
+          docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/backend:${{ github.sha }}
 
-      - name: Push Backend Image
-        run: |
-          docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/backend:latest
-
-      # -----------------------------
-      # Deploy Backend to Cloud Run
-      # -----------------------------
       - name: Deploy Backend
         run: |
           gcloud run deploy backend-service \
-            --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/backend:latest \
+            --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/backend:${{ github.sha }} \
             --region=${{ secrets.GCP_REGION }} \
             --platform=managed \
             --allow-unauthenticated
 
-      # -----------------------------
-      # Build Frontend Image
-      # -----------------------------
-      - name: Build Frontend Docker Image
+      # Build & Push Frontend
+      - name: Build Frontend
         run: |
-          docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/frontend:latest ./collectibles-inventory
+          docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/frontend:${{ github.sha }} ./collectibles-inventory
+          docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/frontend:${{ github.sha }}
 
-      - name: Push Frontend Image
-        run: |
-          docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/frontend:latest
-
-      # -----------------------------
-      # Deploy Frontend to Cloud Run
-      # -----------------------------
       - name: Deploy Frontend
         run: |
           gcloud run deploy frontend-service \
-            --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/frontend:latest \
+            --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/frontend:${{ github.sha }} \
             --region=${{ secrets.GCP_REGION }} \
             --platform=managed \
             --allow-unauthenticated
