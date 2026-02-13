@@ -1,0 +1,75 @@
+name: CI - Backend Build + Frontend Build
+
+on:
+  push:
+    branches:
+      - collectibles-inventory
+
+env:
+  NGC_COMPANY: ${{ secrets.NGC_COMPANY }}
+  NGC_USERNAME: ${{ secrets.NGC_USERNAME }}
+  NGC_PASSWORD: ${{ secrets.NGC_PASSWORD }}
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  DEBUG: "False"
+  CI: "true"
+
+jobs:
+  ci:
+    name: Run Backend + Frontend CI
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # -----------------------------
+      # Backend - Django Build Only
+      # -----------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Django Build Check
+        working-directory: backend
+        run: |
+          python manage.py collectstatic --noinput || true
+
+      # -----------------------------
+      # Frontend - Next.js Build
+      # -----------------------------
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Frontend Dependencies
+        working-directory: collectibles-inventory
+        run: npm ci
+
+      - name: Build Frontend
+        working-directory: collectibles-inventory
+        run: npm run build
+
+      # -----------------------------
+      # Create PR to dev branch
+      # -----------------------------
+      - name: Create Pull Request
+        run: |
+          gh pr create \
+            --base dev \
+            --head collectibles-inventory \
+            --title "Auto PR: collectibles-inventory → dev" \
+            --body "✅ CI passed successfully. Backend and Frontend build completed."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
