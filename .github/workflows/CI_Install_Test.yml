@@ -3,7 +3,7 @@ name: CI - Backend Build + Frontend Build
 on:
   push:
     branches:
-      - collectibles-inventory
+      - feature-1
 
 env:
   NGC_COMPANY: ${{ secrets.NGC_COMPANY }}
