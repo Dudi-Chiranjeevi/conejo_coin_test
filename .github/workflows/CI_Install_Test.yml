@@ -64,4 +64,3 @@ jobs:
           title: "Auto PR: feature-1 → dev"
           body: "CI passed successfully. Ready to merge into dev."
           draft: false
-          
