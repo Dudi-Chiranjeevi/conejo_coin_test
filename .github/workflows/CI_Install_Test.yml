@@ -17,6 +17,13 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt update
+          sudo apt install gh -y
 
       # -----------------------------
       # Backend - Django Build Only
@@ -64,5 +71,4 @@ jobs:
             --base dev \
             --head ${GITHUB_REF_NAME} \
             --title "Auto PR: ${GITHUB_REF_NAME} → dev" \
-            --body "CI passed successfully. Ready to merge into dev." \
-            || echo "PR may already exist"
+            --body "CI passed successfully. Ready to merge into dev."
