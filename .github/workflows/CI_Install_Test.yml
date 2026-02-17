@@ -49,7 +49,7 @@ jobs:
         working-directory: collectibles-inventory
         run: npm ci
 
-      - name: Build Frontend
+      - name: Build Frontend app
         working-directory: collectibles-inventory
         run: npm run build
 
