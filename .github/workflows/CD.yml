@@ -15,7 +15,7 @@ jobs:
 
     env:
       IMAGE_TAG: ${{ github.sha }}
-      REVISION_TAG: v${{ github.run_number }}
+      REVISION_TAG: rev-v${{ github.run_number }}
 
     steps:
       - name: Checkout Code
