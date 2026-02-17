@@ -34,6 +34,4 @@ ENV DJANGO_SECRET_KEY=build-placeholder
 COPY ./entrypoint.sh /entrypoint.sh
 # Fix potential CRLF + make executable
 RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
-
-# Start
 CMD ["/entrypoint.sh"]
