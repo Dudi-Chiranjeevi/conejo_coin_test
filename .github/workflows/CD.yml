@@ -13,11 +13,13 @@ jobs:
     name: Build & Deploy
     runs-on: ubuntu-latest
 
+    env:
+      IMAGE_TAG: ${{ github.sha }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Authenticate to Google Cloud
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -30,30 +32,34 @@ jobs:
         run: |
           gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev
 
+      # -----------------------
       # Build & Push Backend
+      # -----------------------
       - name: Build Backend
         run: |
-          docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/backend:${{ github.sha }} ./backend
-          docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/backend:${{ github.sha }}
+          docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/conejo-backend:${IMAGE_TAG} ./backend
+          docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/conejo-backend:${IMAGE_TAG}
 
       - name: Deploy Backend
         run: |
-          gcloud run deploy backend-service \
-            --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/backend:${{ github.sha }} \
+          gcloud run deploy conejo-backend \
+            --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/conejo-backend:${IMAGE_TAG} \
             --region=${{ secrets.GCP_REGION }} \
             --platform=managed \
-            --allow-unauthenticated
+            --quiet
 
+      # -----------------------
       # Build & Push Frontend
+      # -----------------------
       - name: Build Frontend
         run: |
-          docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/frontend:${{ github.sha }} ./collectibles-inventory
-          docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/frontend:${{ github.sha }}
+          docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/conejo-frontend:${IMAGE_TAG} ./collectibles-inventory
+          docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/conejo-frontend:${IMAGE_TAG}
 
       - name: Deploy Frontend
         run: |
-          gcloud run deploy frontend-service \
-            --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/frontend:${{ github.sha }} \
+          gcloud run deploy conejo-frontend \
+            --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/conejo-frontend:${IMAGE_TAG} \
             --region=${{ secrets.GCP_REGION }} \
             --platform=managed \
-            --allow-unauthenticated
+            --quiet
