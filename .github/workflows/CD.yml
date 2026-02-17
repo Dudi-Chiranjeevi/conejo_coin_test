@@ -15,6 +15,7 @@ jobs:
 
     env:
       IMAGE_TAG: ${{ github.sha }}
+      REVISION_TAG: v${{ github.run_number }}
 
     steps:
       - name: Checkout Code
@@ -40,12 +41,13 @@ jobs:
           docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/conejo-backend:${IMAGE_TAG} ./backend
           docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/conejo-backend:${IMAGE_TAG}
 
-      - name: Deploy Backend
+      - name: Deploy Backend with Revision Tag
         run: |
           gcloud run deploy conejo-backend \
             --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/conejo-backend:${IMAGE_TAG} \
             --region=${{ secrets.GCP_REGION }} \
             --platform=managed \
+            --tag=${REVISION_TAG} \
             --quiet
 
       # -----------------------
@@ -56,10 +58,11 @@ jobs:
           docker build -t ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/conejo-frontend:${IMAGE_TAG} ./collectibles-inventory
           docker push ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/conejo-frontend:${IMAGE_TAG}
 
-      - name: Deploy Frontend
+      - name: Deploy Frontend with Revision Tag
         run: |
           gcloud run deploy conejo-frontend \
             --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/conejo-frontend:${IMAGE_TAG} \
             --region=${{ secrets.GCP_REGION }} \
             --platform=managed \
+            --tag=${REVISION_TAG} \
             --quiet
