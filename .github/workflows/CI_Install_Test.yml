@@ -57,11 +57,12 @@ jobs:
       # Create PR to dev
       # -----------------------------
       - name: Create Pull Request to Dev
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: dev
-          title: "Auto PR: feature-1 → dev"
-          body: "CI passed successfully. Ready to merge into dev."
-          draft: false
-          
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base dev \
+            --head ${GITHUB_REF_NAME} \
+            --title "Auto PR: ${GITHUB_REF_NAME} → dev" \
+            --body "CI passed successfully. Ready to merge into dev." \
+            || echo "PR may already exist"
